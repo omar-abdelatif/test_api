@@ -16,7 +16,6 @@ class PostController extends Controller
         $posts = Post::all();
         $response = [
             'status' => true,
-            'message' => 'Post Inserted Successfully',
             'posts' => $posts
         ];
         return view('posts.index', compact('posts', 'response'));
@@ -38,7 +37,15 @@ class PostController extends Controller
         $post = Post::create($validated);
 
         if($post){
-            return redirect()->route('posts.index')->with('success', 'Post Inserted Successfully');
+            $response = [
+                'status' => true,
+                'message' => 'Post Inserted Successfully',
+                'posts' => $post
+            ];
+            return redirect()->route('posts.index')->with([
+                'success' => 'Post Inserted Successfully',
+                'response' => $response
+            ]);
         }
         return redirect()->route('posts.add')->withErrors($validated);
         // return response()->json([
@@ -54,10 +61,14 @@ class PostController extends Controller
     public function show(Post $post)
     {
         $post = Post::find($post->id);
-        return response()->json([
-            'status' => true,
-            'post' => $post
-        ], 200);
+        if ($post) {
+            return redirect()->route('posts.index')->with(['post' => $post]);
+        }
+        return redirect()->route('posts.index');
+        // return response()->json([
+        //     'status' => true,
+        //     'post' => $post
+        // ], 200);
     }
 
     /**
@@ -68,16 +79,20 @@ class PostController extends Controller
         $post = Post::find($post->id);
         if($post){
             $post->update($request->all());
-            return response()->json([
-                'status' => true,
-                'message' => 'Post Updated Successfully',
-                'post' => $post
-            ]);
+            if ($post) {
+                return redirect()->route('posts.index')->with('success', 'Post Updated Successfully');
+            }
+            // return response()->json([
+            //     'status' => true,
+            //     'message' => 'Post Updated Successfully',
+            //     'post' => $post
+            // ]);
         }
-        return response()->json([
-            'status' => false,
-            'message' => 'Sorry No Post Found With This Id',
-        ]);
+        return redirect()->route('posts.add')->withErrors('Error Happen');
+        // return response()->json([
+        //     'status' => false,
+        //     'message' => 'Sorry No Post Found With This Id',
+        // ]);
     }
 
     /**
@@ -87,17 +102,22 @@ class PostController extends Controller
     {
         $post = Post::find($post->id);
         if($post){
-            $post->delete();
-
-            return response()->json([
+            $response = [
                 'status' => true,
-                'message' => 'post deleted successfully',
-                'post' => $post
-            ], 200);
+                'message' => 'Post Deleted Successfully',
+            ];
+            $post->delete();
+            return redirect()->route('posts.index')->with('response', $response);
+            // return response()->json([
+            //     'status' => true,
+            //     'message' => 'post deleted successfully',
+            //     'post' => $post
+            // ], 200);
         }
-        return response()->json([
-            'status' => false,
-            'message' => 'no post found with this id'
-        ], 404);
+        return redirect()->route('posts.index')->withErrors('Error Happen');
+        // return response()->json([
+        //     'status' => false,
+        //     'message' => 'no post found with this id'
+        // ], 404);
     }
 }
